@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛁 Soap Shop - Замовлення натурального мила</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🛁 Soap Shop</h1>
+                <p class="tagline">Натуральне мило ручної роботи</p>
+                <a href="admin.html" class="admin-link">🔧 Адмін-панель</a>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main">
+            <section class="order-section">
+                <h2>Оформити замовлення</h2>
+                <form id="orderForm" class="order-form">
+                    <!-- Step 1: Shape Selection -->
+                    <div class="form-step active" id="step1">
+                        <h3>Крок 1: Виберіть форму мила</h3>
+                        <div class="shape-options" id="shapesContainer"></div>
+                        <button type="button" class="btn-next" onclick="nextStep()">Далі →</button>
+                    </div>
+
+                    <!-- Step 2: Color Selection -->
+                    <div class="form-step" id="step2">
+                        <h3>Крок 2: Виберіть колір</h3>
+                        <div id="colorContainer" class="color-options" style="display: none;"></div>
+                        <div class="form-buttons">
+                            <button type="button" class="btn-prev" onclick="prevStep()">← Назад</button>
+                            <button type="button" class="btn-next" onclick="nextStep()">Далі →</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Scent Selection -->
+                    <div class="form-step" id="step3">
+                        <h3>Крок 3: Виберіть аромат</h3>
+                        <div class="scent-options" id="scentsContainer"></div>
+                        <div class="form-buttons">
+                            <button type="button" class="btn-prev" onclick="prevStep()">← Назад</button>
+                            <button type="button" class="btn-next" onclick="nextStep()">Далі →</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Ingredient Selection -->
+                    <div class="form-step" id="step4">
+                        <h3>Крок 4: Виберіть смак/інгредієнт</h3>
+                        <div class="ingredient-options" id="soapsContainer"></div>
+                        <div class="form-buttons">
+                            <button type="button" class="btn-prev" onclick="prevStep()">← Назад</button>
+                            <button type="button" class="btn-next" onclick="nextStep()">Далі →</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Contact Information -->
+                    <div class="form-step" id="step5">
+                        <h3>Крок 5: Ваші контактні дані</h3>
+                        <div class="contact-form">
+                            <div class="form-group">
+                                <label for="name">Ім'я *</label>
+                                <input type="text" id="name" name="name" required placeholder="Введіть ваше ім'я">
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Телефон *</label>
+                                <input type="tel" id="phone" name="phone" required placeholder="0971891845">
+                            </div>
+                            <div class="form-group">
+                                <label for="telegramUsername">Telegram нік</label>
+                                <input type="text" id="telegramUsername" name="telegramUsername" placeholder="@ann_not_found">
+                            </div>
+                            <div class="form-group">
+                                <label for="notes">Додаткові побажання</label>
+                                <textarea id="notes" name="notes" rows="4" placeholder="Напишіть свої побажання (опціонально)"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-buttons">
+                            <button type="button" class="btn-prev" onclick="prevStep()">← Назад</button>
+                            <button type="submit" class="btn-submit">✓ Відправити замовлення</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Order Summary -->
+            <aside class="order-summary">
+                <h3>📋 Ваше замовлення</h3>
+                <div id="summary" class="summary-content">
+                    <p class="empty-summary">Заповніть форму</p>
+                </div>
+            </aside>
+        </main>
+
+        <!-- Success Message -->
+        <div id="successModal" class="modal">
+            <div class="modal-content">
+                <h2>✓ Замовлення успішно отримано!</h2>
+                <p>Дякуємо за замовлення! Ми зв'яжемося з вами найближчим часом.</p>
+                <p class="contact-info">
+                    <strong>☎️ Телефон:</strong> <span id="contactPhone">0971891845</span><br>
+                    <strong>💬 Telegram:</strong> <span id="contactTelegram">@ann_not_found</span>
+                </p>
+                <button class="btn-close" onclick="closeModal()">Нове замовлення</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

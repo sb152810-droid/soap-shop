@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Soap Shop - Адмін-панель</title>
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Login Form -->
+        <div id="loginSection" class="login-section">
+            <div class="login-box">
+                <h1>🔐 Вхід в адмін-панель</h1>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" required placeholder="sb152810@gmail.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Пароль:</label>
+                        <input type="password" id="password" required placeholder="Введіть пароль">
+                    </div>
+                    <button type="submit" class="btn-login">Увійти</button>
+                </form>
+                <div id="loginError" class="error-message"></div>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="adminSection" class="admin-section" style="display: none;">
+            <header class="admin-header">
+                <h1>🛁 Soap Shop - Адмін-панель</h1>
+                <button class="btn-logout" onclick="logout()">🚪 Вихід</button>
+            </header>
+
+            <nav class="admin-nav">
+                <button class="nav-btn active" onclick="switchTab('orders')">📦 Замовлення</button>
+                <button class="nav-btn" onclick="switchTab('scents')">🌸 Ароматы</button>
+                <button class="nav-btn" onclick="switchTab('colors')">🎨 Кольори</button>
+                <button class="nav-btn" onclick="switchTab('soaps')">🧼 Мило</button>
+                <button class="nav-btn" onclick="switchTab('contacts')">📞 Контакти</button>
+            </nav>
+
+            <!-- Orders Tab -->
+            <section id="ordersTab" class="tab active">
+                <h2>📦 Замовлення</h2>
+                <div class="orders-container" id="ordersContainer"></div>
+            </section>
+
+            <!-- Scents Tab -->
+            <section id="scentsTab" class="tab">
+                <h2>🌸 Управління ароматами</h2>
+                <div class="add-item-form">
+                    <input type="text" id="scentName" placeholder="Назва аромату" class="form-input">
+                    <input type="text" id="scentEmoji" placeholder="Емодзі (наприклад: 🌸)" class="form-input" value="🌸">
+                    <button onclick="addScent()" class="btn-add">➕ Додати аромат</button>
+                </div>
+                <div class="items-list" id="scentsList"></div>
+            </section>
+
+            <!-- Colors Tab -->
+            <section id="colorsTab" class="tab">
+                <h2>🎨 Управління кольорами</h2>
+                <div class="add-item-form">
+                    <input type="text" id="colorName" placeholder="Назва кольору" class="form-input">
+                    <input type="color" id="colorValue" class="form-input" value="#90EE90">
+                    <button onclick="addColor()" class="btn-add">➕ Додати колір</button>
+                </div>
+                <div class="items-list" id="colorsList"></div>
+            </section>
+
+            <!-- Soaps Tab -->
+            <section id="soapsTab" class="tab">
+                <h2>🧼 Управління типами мила</h2>
+                <div class="add-item-form">
+                    <input type="text" id="soapName" placeholder="Назва мила" class="form-input">
+                    <input type="text" id="soapEmoji" placeholder="Емодзі" class="form-input" value="🧼">
+                    <button onclick="addSoap()" class="btn-add">➕ Додати мило</button>
+                </div>
+                <div class="items-list" id="soapsList"></div>
+            </section>
+
+            <!-- Contacts Tab -->
+            <section id="contactsTab" class="tab">
+                <h2>📞 Управління контактами</h2>
+                <div class="add-item-form">
+                    <select id="contactType" class="form-input">
+                        <option value="phone">☎️ Телефон</option>
+                        <option value="email">📧 Email</option>
+                        <option value="telegram">💬 Telegram</option>
+                        <option value="other">🔗 Інше</option>
+                    </select>
+                    <input type="text" id="contactLabel" placeholder="Назва контакту" class="form-input">
+                    <input type="text" id="contactValue" placeholder="Значення" class="form-input">
+                    <button onclick="addContact()" class="btn-add">➕ Додати контакт</button>
+                </div>
+                <div class="items-list" id="contactsList"></div>
+            </section>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
