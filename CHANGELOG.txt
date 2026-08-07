@@ -1,5 +1,1 @@
-Update: removed Instagram links and QR code; cleaned contact section.
-
-Notes:
-- If you want the QR code back later, tell me and I will re-add script.js and the QR block.
-- Remember to keep assets (images) in assets/ folder so the site looks complete.
+Remove third product (gift set) and unused image placeholders per user request.
