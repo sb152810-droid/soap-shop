@@ -3,6 +3,7 @@ let currentTab = 'orders';
 
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('loginForm').addEventListener('submit', handleLogin);
+  document.getElementById('productImage').addEventListener('change', previewImage);
   const savedCredentials = localStorage.getItem('adminCredentials');
   if (savedCredentials) {
     const creds = JSON.parse(savedCredentials);
@@ -68,11 +69,15 @@ async function loadAllData() {
 
 async function loadTabData(tab) {
   if (tab === 'orders') loadOrders();
+  else if (tab === 'products') loadProducts();
+  else if (tab === 'promos') loadPromos();
   else if (tab === 'scents') loadScents();
   else if (tab === 'colors') loadColors();
   else if (tab === 'soaps') loadSoaps();
   else if (tab === 'contacts') loadContacts();
 }
+
+// ========== ORDERS ==========
 
 async function loadOrders() {
   try {
@@ -109,6 +114,215 @@ async function deleteOrder(id) {
     alert('Помилка: ' + error.message);
   }
 }
+
+// ========== PRODUCTS ==========
+
+function previewImage(e) {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const preview = document.getElementById('imagePreview');
+      preview.src = event.target.result;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+async function addProduct() {
+  const name = document.getElementById('productName').value.trim();
+  const description = document.getElementById('productDescription').value.trim();
+  const price = parseFloat(document.getElementById('productPrice').value);
+  const imageFile = document.getElementById('productImage').files[0];
+
+  if (!name || !description || !price) {
+    alert('Заповніть усі поля');
+    return;
+  }
+
+  try {
+    let image = '';
+    if (imageFile) {
+      const reader = new FileReader();
+      image = await new Promise((resolve) => {
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(imageFile);
+      });
+    }
+
+    const response = await fetch('/api/admin/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: credentials.email,
+        password: credentials.password,
+        name,
+        description,
+        price,
+        image
+      })
+    });
+
+    if (response.ok) {
+      document.getElementById('productName').value = '';
+      document.getElementById('productDescription').value = '';
+      document.getElementById('productPrice').value = '';
+      document.getElementById('productImage').value = '';
+      document.getElementById('imagePreview').style.display = 'none';
+      loadProducts();
+      alert('✅ Товар додано!');
+    }
+  } catch (error) {
+    alert('Помилка: ' + error.message);
+  }
+}
+
+async function loadProducts() {
+  try {
+    const response = await fetch(`/api/admin/products?email=${credentials.email}&password=${credentials.password}`);
+    const products = await response.json();
+
+    const container = document.getElementById('productsList');
+    let html = '';
+
+    if (products.length === 0) {
+      container.innerHTML = '<p class="no-data">Товарів немає</p>';
+      return;
+    }
+
+    products.forEach(product => {
+      html += `
+        <div class="product-card">
+          <div class="product-image">
+            ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '📦'}
+          </div>
+          <div class="product-info">
+            <h3>${product.name}</h3>
+            <p>${product.description}</p>
+            <p class="price">💰 ${product.price} грн</p>
+          </div>
+          <button onclick="deleteProduct(${product.id})" class="btn-delete">🗑️ Видалити</button>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+  } catch (error) {
+    alert('Помилка: ' + error.message);
+  }
+}
+
+async function deleteProduct(id) {
+  if (!confirm('Ви впевнені?')) return;
+
+  try {
+    const response = await fetch(`/api/admin/products/${id}?email=${credentials.email}&password=${credentials.password}`, { method: 'DELETE' });
+    if (response.ok) {
+      loadProducts();
+      alert('✅ Товар видалено!');
+    }
+  } catch (error) {
+    alert('Помилка: ' + error.message);
+  }
+}
+
+// ========== PROMOS ==========
+
+async function addPromo() {
+  const code = document.getElementById('promoCode').value.trim().toUpperCase();
+  const discount = parseInt(document.getElementById('promoDiscount').value);
+  const description = document.getElementById('promoDescription').value.trim();
+  const expiresAt = document.getElementById('promoExpiresAt').value;
+  const sendToChannel = document.getElementById('sendToChannel').checked;
+
+  if (!code || !discount) {
+    alert('Введіть промокод і знижку');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/admin/promos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: credentials.email,
+        password: credentials.password,
+        code,
+        discount,
+        description,
+        expiresAt,
+        sendToChannel
+      })
+    });
+
+    if (response.ok) {
+      document.getElementById('promoCode').value = '';
+      document.getElementById('promoDiscount').value = '10';
+      document.getElementById('promoDescription').value = '';
+      document.getElementById('promoExpiresAt').value = '';
+      loadPromos();
+      alert('✅ Промокод додано!' + (sendToChannel ? ' Відправлено в канал!' : ''));
+    }
+  } catch (error) {
+    alert('Помилка: ' + error.message);
+  }
+}
+
+async function loadPromos() {
+  try {
+    const response = await fetch(`/api/admin/promos?email=${credentials.email}&password=${credentials.password}`);
+    const promos = await response.json();
+
+    const container = document.getElementById('promosList');
+    let html = '';
+
+    if (promos.length === 0) {
+      container.innerHTML = '<p class="no-data">Промокодів немає</p>';
+      return;
+    }
+
+    promos.forEach(promo => {
+      const expiresDate = promo.expiresAt ? new Date(promo.expiresAt).toLocaleDateString('uk-UA') : 'Немає';
+      const statusClass = promo.active ? 'active' : 'inactive';
+      
+      html += `
+        <div class="promo-card ${statusClass}">
+          <div class="promo-header">
+            <h3>💰 ${promo.code}</h3>
+            <span class="promo-discount">-${promo.discount}%</span>
+          </div>
+          <div class="promo-details">
+            ${promo.description ? `<p><strong>Опис:</strong> ${promo.description}</p>` : ''}
+            <p><strong>Дійсна до:</strong> ${expiresDate}</p>
+            <p><strong>Статус:</strong> ${promo.active ? '✅ Активна' : '❌ Неактивна'}</p>
+          </div>
+          <button onclick="deletePromo(${promo.id})" class="btn-delete">🗑️ Видалити</button>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+  } catch (error) {
+    alert('Помилка: ' + error.message);
+  }
+}
+
+async function deletePromo(id) {
+  if (!confirm('Ви впевнені?')) return;
+
+  try {
+    const response = await fetch(`/api/admin/promos/${id}?email=${credentials.email}&password=${credentials.password}`, { method: 'DELETE' });
+    if (response.ok) {
+      loadPromos();
+      alert('✅ Промокод видалено!');
+    }
+  } catch (error) {
+    alert('Помилка: ' + error.message);
+  }
+}
+
+// ========== SCENTS ==========
 
 async function loadScents() {
   try {
@@ -165,6 +379,8 @@ async function deleteScent(id) {
   }
 }
 
+// ========== COLORS ==========
+
 async function loadColors() {
   try {
     const response = await fetch('/api/data');
@@ -219,6 +435,8 @@ async function deleteColor(id) {
     alert('Помилка: ' + error.message);
   }
 }
+
+// ========== SOAPS ==========
 
 async function loadSoaps() {
   try {
@@ -275,6 +493,8 @@ async function deleteSoap(id) {
   }
 }
 
+// ========== CONTACTS ==========
+
 async function loadContacts() {
   try {
     const response = await fetch('/api/data');
@@ -285,7 +505,7 @@ async function loadContacts() {
     
     data.contacts.forEach(contact => {
       const typeEmoji = { phone: '☎️', email: '📧', telegram: '💬', other: '🔗' };
-      html += `<div class="item-card"><div class="item-info"><span class="item-emoji">${typeEmoji[contact.type] || '🔗'}</span><div class="contact-details"><span class="item-name">${contact.label}</span><span class="contact-value">${contact.value}</span></div></div><button onclick="deleteContact(${contact.id})" class="btn-delete">🗑️</button></div>`;
+      html += `<div class="item-card"><div class="item-info"><span class="item-emoji">${typeEmoji[contact.type] || '🔗'}</span><div class="contact-details"><span class="item-name">${contact.label}</span><span class="item-value">${contact.value}</span></div></div><button onclick="deleteContact(${contact.id})" class="btn-delete">🗑️</button></div>`;
     });
     
     container.innerHTML = html || '<p class="no-data">Немає контактів</p>';
