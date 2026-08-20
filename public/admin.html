@@ -36,6 +36,8 @@
 
             <nav class="admin-nav">
                 <button class="nav-btn active" onclick="switchTab('orders')">📦 Замовлення</button>
+                <button class="nav-btn" onclick="switchTab('products')">🛍️ Товари</button>
+                <button class="nav-btn" onclick="switchTab('promos')">🎉 Промокоди</button>
                 <button class="nav-btn" onclick="switchTab('scents')">🌸 Ароматы</button>
                 <button class="nav-btn" onclick="switchTab('colors')">🎨 Кольори</button>
                 <button class="nav-btn" onclick="switchTab('soaps')">🧼 Мило</button>
@@ -46,6 +48,37 @@
             <section id="ordersTab" class="tab active">
                 <h2>📦 Замовлення</h2>
                 <div class="orders-container" id="ordersContainer"></div>
+            </section>
+
+            <!-- Products Tab -->
+            <section id="productsTab" class="tab">
+                <h2>🛍️ Управління товарами</h2>
+                <div class="add-item-form product-form">
+                    <input type="text" id="productName" placeholder="Назва товару" class="form-input">
+                    <textarea id="productDescription" placeholder="Опис товару" class="form-input" rows="3"></textarea>
+                    <input type="number" id="productPrice" placeholder="Ціна" class="form-input" step="0.01" min="0">
+                    <input type="file" id="productImage" accept="image/*" class="form-input">
+                    <img id="imagePreview" style="max-width: 150px; max-height: 150px; display: none; margin-top: 10px;">
+                    <button onclick="addProduct()" class="btn-add">➕ Додати товар</button>
+                </div>
+                <div class="products-list" id="productsList"></div>
+            </section>
+
+            <!-- Promos Tab -->
+            <section id="promosTab" class="tab">
+                <h2>🎉 Управління промокодами</h2>
+                <div class="add-item-form promo-form">
+                    <input type="text" id="promoCode" placeholder="Промокод (наприклад: SUMMER2024)" class="form-input">
+                    <input type="number" id="promoDiscount" placeholder="Знижка %" class="form-input" min="0" max="100" value="10">
+                    <textarea id="promoDescription" placeholder="Опис промокоду (опціонально)" class="form-input" rows="2"></textarea>
+                    <input type="date" id="promoExpiresAt" class="form-input">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="sendToChannel" checked>
+                        📢 Відправити в Telegram канал
+                    </label>
+                    <button onclick="addPromo()" class="btn-add">➕ Додати промокод</button>
+                </div>
+                <div class="promos-list" id="promosList"></div>
             </section>
 
             <!-- Scents Tab -->
