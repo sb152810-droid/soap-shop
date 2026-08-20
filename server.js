@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 3000;
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'sb152810@gmail.com';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID || '@ann_not_found'; // Ваш канал про знижки
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
@@ -23,12 +24,20 @@ const dataFiles = {
   scents: path.join(dataDir, 'scents.json'),
   colors: path.join(dataDir, 'colors.json'),
   soaps: path.join(dataDir, 'soaps.json'),
-  contacts: path.join(dataDir, 'contacts.json')
+  contacts: path.join(dataDir, 'contacts.json'),
+  products: path.join(dataDir, 'products.json'),
+  promos: path.join(dataDir, 'promos.json')
 };
 
 // Create data directory if doesn't exist
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
+}
+
+// Create uploads directory for photos
+const uploadsDir = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
 // Initialize data files
@@ -57,7 +66,7 @@ function initializeData() {
       { id: 2, name: 'Рожевий', value: '#FFB6C1' },
       { id: 3, name: 'Лавандовий', value: '#E6E6FA' },
       { id: 4, name: 'Персиковий', value: '#FFDAB9' },
-      { id: 5, name: 'Крем��вий', value: '#FFFACD' },
+      { id: 5, name: 'Кремовий', value: '#FFFACD' },
       { id: 6, name: 'М\'ятний', value: '#98FF98' }
     ];
     fs.writeFileSync(dataFiles.colors, JSON.stringify(defaultColors, null, 2));
@@ -80,6 +89,12 @@ function initializeData() {
       { id: 3, type: 'email', value: 'sb152810@gmail.com', label: 'Email' }
     ];
     fs.writeFileSync(dataFiles.contacts, JSON.stringify(defaultContacts, null, 2));
+  }
+  if (!fs.existsSync(dataFiles.products)) {
+    fs.writeFileSync(dataFiles.products, JSON.stringify([]));
+  }
+  if (!fs.existsSync(dataFiles.promos)) {
+    fs.writeFileSync(dataFiles.promos, JSON.stringify([]));
   }
 }
 
@@ -142,6 +157,41 @@ ${orderData.notes || 'Немає'}
   }
 }
 
+// Send promo to Telegram Channel
+async function sendPromoToChannel(promoData) {
+  try {
+    let message = `<b>🎉 НОВА ЗНИЖКА!</b>\n\n`;
+    message += `<b>Промокод:</b> <code>${promoData.code}</code>\n`;
+    message += `<b>Знижка:</b> ${promoData.discount}%\n`;
+    
+    if (promoData.description) {
+      message += `<b>Опис:</b> ${promoData.description}\n`;
+    }
+    
+    if (promoData.expiresAt) {
+      const date = new Date(promoData.expiresAt).toLocaleDateString('uk-UA');
+      message += `<b>Дійсна до:</b> ${date}\n`;
+    }
+    
+    message += `\n💬 Використовуйте при замовленні!`;
+
+    const response = await axios.post(
+      `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: CHANNEL_ID,
+        text: message,
+        parse_mode: 'HTML'
+      }
+    );
+
+    console.log('Promo sent to channel');
+    return true;
+  } catch (error) {
+    console.error('Error sending promo to channel:', error.message);
+    return false;
+  }
+}
+
 // Admin Authentication (simple)
 function verifyAdmin(email, password) {
   return email === ADMIN_EMAIL && password === ADMIN_PASSWORD;
@@ -156,7 +206,9 @@ app.get('/api/data', (req, res) => {
       scents: readData('scents'),
       colors: readData('colors'),
       soaps: readData('soaps'),
-      contacts: readData('contacts')
+      contacts: readData('contacts'),
+      products: readData('products'),
+      promos: readData('promos')
     });
   } catch (error) {
     res.status(500).json({ error: 'Помилка при завантаженні даних' });
@@ -232,6 +284,161 @@ app.delete('/api/admin/orders/:id', (req, res) => {
     orders = orders.filter(o => o.id !== parseInt(req.params.id));
     writeData('orders', orders);
     res.json({ success: true, message: 'Замовлення видалено' });
+  } catch (error) {
+    res.status(500).json({ error: 'Помилка при видаленні' });
+  }
+});
+
+// ========== PRODUCTS API ==========
+
+// Get all products
+app.get('/api/admin/products', (req, res) => {
+  const { email, password } = req.query;
+  if (!verifyAdmin(email, password)) {
+    return res.status(401).json({ error: 'Не авторизовано' });
+  }
+  res.json(readData('products'));
+});
+
+// Add product
+app.post('/api/admin/products', (req, res) => {
+  const { email, password, name, description, price, image } = req.body;
+  if (!verifyAdmin(email, password)) {
+    return res.status(401).json({ error: 'Не авторизовано' });
+  }
+
+  try {
+    const products = readData('products');
+    const newProduct = {
+      id: Date.now(),
+      name,
+      description,
+      price,
+      image,
+      createdAt: new Date().toISOString()
+    };
+    products.push(newProduct);
+    writeData('products', products);
+    res.json({ success: true, product: newProduct });
+  } catch (error) {
+    res.status(500).json({ error: 'Помилка при додаванні товару' });
+  }
+});
+
+// Update product
+app.put('/api/admin/products/:id', (req, res) => {
+  const { email, password, name, description, price, image } = req.body;
+  if (!verifyAdmin(email, password)) {
+    return res.status(401).json({ error: 'Не авторизовано' });
+  }
+
+  try {
+    let products = readData('products');
+    const index = products.findIndex(p => p.id === parseInt(req.params.id));
+    if (index === -1) {
+      return res.status(404).json({ error: 'Товар не знайдено' });
+    }
+    products[index] = { ...products[index], name, description, price, image };
+    writeData('products', products);
+    res.json({ success: true, product: products[index] });
+  } catch (error) {
+    res.status(500).json({ error: 'Помилка при оновленні товару' });
+  }
+});
+
+// Delete product
+app.delete('/api/admin/products/:id', (req, res) => {
+  const { email, password } = req.query;
+  if (!verifyAdmin(email, password)) {
+    return res.status(401).json({ error: 'Не авторизовано' });
+  }
+
+  try {
+    let products = readData('products');
+    products = products.filter(p => p.id !== parseInt(req.params.id));
+    writeData('products', products);
+    res.json({ success: true, message: 'Товар видалено' });
+  } catch (error) {
+    res.status(500).json({ error: 'Помилка при видаленні' });
+  }
+});
+
+// ========== PROMOS API ==========
+
+// Get all promos
+app.get('/api/admin/promos', (req, res) => {
+  const { email, password } = req.query;
+  if (!verifyAdmin(email, password)) {
+    return res.status(401).json({ error: 'Не авторизовано' });
+  }
+  res.json(readData('promos'));
+});
+
+// Add promo
+app.post('/api/admin/promos', async (req, res) => {
+  const { email, password, code, discount, description, expiresAt, sendToChannel } = req.body;
+  if (!verifyAdmin(email, password)) {
+    return res.status(401).json({ error: 'Не авторизовано' });
+  }
+
+  try {
+    const promos = readData('promos');
+    const newPromo = {
+      id: Date.now(),
+      code,
+      discount,
+      description,
+      expiresAt,
+      createdAt: new Date().toISOString(),
+      active: true
+    };
+    promos.push(newPromo);
+    writeData('promos', promos);
+
+    // Send to Telegram channel if requested
+    if (sendToChannel) {
+      await sendPromoToChannel(newPromo);
+    }
+
+    res.json({ success: true, promo: newPromo });
+  } catch (error) {
+    res.status(500).json({ error: 'Помилка при додаванні промокоду' });
+  }
+});
+
+// Update promo
+app.put('/api/admin/promos/:id', (req, res) => {
+  const { email, password, code, discount, description, expiresAt, active } = req.body;
+  if (!verifyAdmin(email, password)) {
+    return res.status(401).json({ error: 'Не авторизовано' });
+  }
+
+  try {
+    let promos = readData('promos');
+    const index = promos.findIndex(p => p.id === parseInt(req.params.id));
+    if (index === -1) {
+      return res.status(404).json({ error: 'Промокод не знайдено' });
+    }
+    promos[index] = { ...promos[index], code, discount, description, expiresAt, active };
+    writeData('promos', promos);
+    res.json({ success: true, promo: promos[index] });
+  } catch (error) {
+    res.status(500).json({ error: 'Помилка при оновленні промокоду' });
+  }
+});
+
+// Delete promo
+app.delete('/api/admin/promos/:id', (req, res) => {
+  const { email, password } = req.query;
+  if (!verifyAdmin(email, password)) {
+    return res.status(401).json({ error: 'Не авторизовано' });
+  }
+
+  try {
+    let promos = readData('promos');
+    promos = promos.filter(p => p.id !== parseInt(req.params.id));
+    writeData('promos', promos);
+    res.json({ success: true, message: 'Промокод видалено' });
   } catch (error) {
     res.status(500).json({ error: 'Помилка при видаленні' });
   }
@@ -398,4 +605,5 @@ app.listen(PORT, () => {
   console.log(`🛁 Soap Shop server running on http://localhost:${PORT}`);
   console.log(`📱 Telegram Bot Token: ${BOT_TOKEN ? 'Configured' : 'NOT SET'}`);
   console.log(`👤 Admin Email: ${ADMIN_EMAIL}`);
+  console.log(`📢 Promo Channel: ${CHANNEL_ID}`);
 });
