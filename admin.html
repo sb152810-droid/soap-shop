@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Адмін-панель - Soap Shop</title>
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-left">
+                <h1>🔧 Адмін-панель Soap Shop</h1>
+                <p class="user-info" id="userInfo">Не авторизовані</p>
+            </div>
+            <button class="btn-logout" onclick="logout()">Вихід 🚪</button>
+        </header>
+
+        <!-- Login Form (visible when not authenticated) -->
+        <div id="loginContainer" class="login-container">
+            <div class="login-box">
+                <h2>🔐 Вхід в адмін-панель</h2>
+                <form id="loginForm" class="login-form">
+                    <div class="form-group">
+                        <label for="loginEmail">Email *</label>
+                        <input type="email" id="loginEmail" name="email" required placeholder="admin@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Пароль *</label>
+                        <input type="password" id="loginPassword" name="password" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn-submit">Увійти</button>
+                </form>
+                <p class="or-divider">або</p>
+                <button class="btn-register" onclick="toggleRegister()">Зареєструватися новий обліковий запис</button>
+            </div>
+
+            <div id="registerBox" class="register-box hidden">
+                <h2>📝 Реєстрація адміністратора</h2>
+                <form id="registerForm" class="register-form">
+                    <div class="form-group">
+                        <label for="regName">Ім'я *</label>
+                        <input type="text" id="regName" name="name" required placeholder="Ваше ім'я">
+                    </div>
+                    <div class="form-group">
+                        <label for="regEmail">Email *</label>
+                        <input type="email" id="regEmail" name="email" required placeholder="admin@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="regPassword">Пароль *</label>
+                        <input type="password" id="regPassword" name="password" required placeholder="Мінімум 6 символів">
+                    </div>
+                    <div class="form-group">
+                        <label for="regPasswordConfirm">Повторіть пароль *</label>
+                        <input type="password" id="regPasswordConfirm" name="passwordConfirm" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn-submit">Зареєструватися</button>
+                    <button type="button" class="btn-cancel" onclick="toggleRegister()">Скасувати</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Main Admin Panel (visible when authenticated) -->
+        <div id="adminPanel" class="admin-panel hidden">
+            <!-- Sidebar Navigation -->
+            <nav class="admin-sidebar">
+                <ul class="nav-menu">
+                    <li><a href="#" onclick="showTab('dashboard')" class="nav-item active" data-tab="dashboard">📊 Огляд</a></li>
+                    <li><a href="#" onclick="showTab('products')" class="nav-item" data-tab="products">🧼 Товари</a></li>
+                    <li><a href="#" onclick="showTab('promos')" class="nav-item" data-tab="promos">🎟️ Промокоди</a></li>
+                    <li><a href="#" onclick="showTab('orders')" class="nav-item" data-tab="orders">📦 Замовлення</a></li>
+                    <li><a href="#" onclick="showTab('telegram')" class="nav-item" data-tab="telegram">📢 Telegram канал</a></li>
+                    <li><a href="#" onclick="showTab('settings')" class="nav-item" data-tab="settings">⚙️ Налаштування</a></li>
+                </ul>
+            </nav>
+
+            <!-- Main Content Area -->
+            <main class="admin-content">
+                
+                <!-- Dashboard Tab -->
+                <div id="dashboard" class="tab-content active">
+                    <h2>📊 Огляд</h2>
+                    <div class="dashboard-stats">
+                        <div class="stat-card">
+                            <h3>Всього товарів</h3>
+                            <p class="stat-number" id="totalProducts">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Активних промокодів</h3>
+                            <p class="stat-number" id="totalPromos">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Замовлень</h3>
+                            <p class="stat-number" id="totalOrders">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Адміністраторів</h3>
+                            <p class="stat-number" id="totalAdmins">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Tab -->
+                <div id="products" class="tab-content">
+                    <h2>🧼 Управління товарами</h2>
+                    
+                    <div class="section-box">
+                        <h3>Додати новий товар</h3>
+                        <form id="productForm" class="product-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="productType">Тип товару *</label>
+                                    <select id="productType" required>
+                                        <option value="">Виберіть тип</option>
+                                        <option value="shape">Форма</option>
+                                        <option value="color">Колір</option>
+                                        <option value="scent">Аромат</option>
+                                        <option value="soap">Тип мила</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="productName">Назва *</label>
+                                    <input type="text" id="productName" required placeholder="Назва товару">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="productEmoji">Емодзі (для ароматів/типів)</label>
+                                    <input type="text" id="productEmoji" placeholder="🌹" maxlength="5">
+                                </div>
+                                <div class="form-group">
+                                    <label for="productColor">Значення кольору (для кольорів)</label>
+                                    <input type="color" id="productColor">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-submit">➕ Додати товар</button>
+                        </form>
+                    </div>
+
+                    <div class="section-box">
+                        <h3>Існуючі товари</h3>
+                        <div id="productsList" class="products-list">
+                            <p class="empty-message">Немає товарів</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Promo Codes Tab -->
+                <div id="promos" class="tab-content">
+                    <h2>🎟️ Управління промокодами</h2>
+                    
+                    <div class="section-box">
+                        <h3>Створити новий промокод</h3>
+                        <form id="promoForm" class="promo-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="promoCode">Код промокода *</label>
+                                    <input type="text" id="promoCode" required placeholder="SALE2024" pattern="[A-Z0-9]{3,20}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="promoDiscount">Знижка (%) *</label>
+                                    <input type="number" id="promoDiscount" required min="1" max="100" placeholder="15">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="promoExpiryDate">Дата закінчення</label>
+                                    <input type="date" id="promoExpiryDate">
+                                </div>
+                                <div class="form-group">
+                                    <label for="promoUsageLimit">Ліміт використань</label>
+                                    <input type="number" id="promoUsageLimit" min="1" placeholder="Без обмежень">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="promoDescription">Опис</label>
+                                <textarea id="promoDescription" placeholder="Опис промокода" rows="2"></textarea>
+                            </div>
+                            <button type="submit" class="btn-submit">➕ Створити промокод</button>
+                        </form>
+                    </div>
+
+                    <div class="section-box">
+                        <h3>Активні промокоди</h3>
+                        <div id="promosList" class="promos-list">
+                            <p class="empty-message">Немає промокодів</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orders Tab -->
+                <div id="orders" class="tab-content">
+                    <h2>📦 Замовлення</h2>
+                    <div id="ordersList" class="orders-list">
+                        <p class="empty-message">Немає замовлень</p>
+                    </div>
+                </div>
+
+                <!-- Telegram Channel Tab -->
+                <div id="telegram" class="tab-content">
+                    <h2>📢 Посилання на Telegram канал</h2>
+                    
+                    <div class="section-box">
+                        <h3>Налаштування Telegram</h3>
+                        <form id="telegramForm" class="telegram-form">
+                            <div class="form-group">
+                                <label for="telegramLink">Посилання на Telegram канал *</label>
+                                <input type="url" id="telegramLink" required placeholder="https://t.me/+LA2IV4k5ySVmZWly" value="https://t.me/+LA2IV4k5ySVmZWly">
+                            </div>
+                            <div class="form-group">
+                                <label for="telegramDescription">Опис каналу</label>
+                                <textarea id="telegramDescription" rows="4" placeholder="Опис того, що публікується в каналі">Канал з акціями, промокодами та новинами</textarea>
+                            </div>
+                            <button type="submit" class="btn-submit">💾 Зберегти</button>
+                        </form>
+                    </div>
+
+                    <div class="section-box">
+                        <h3>Яка версія буде показана на сайті</h3>
+                        <div class="telegram-preview">
+                            <p><strong>Посилання:</strong> <span id="previewLink">https://t.me/+LA2IV4k5ySVmZWly</span></p>
+                            <p><strong>Опис:</strong> <span id="previewDesc">Канал з акціями, промокодами та новинами</span></p>
+                            <a href="https://t.me/+LA2IV4k5ySVmZWly" target="_blank" class="btn-submit">📲 Перейти на канал</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div id="settings" class="tab-content">
+                    <h2>⚙️ Налаштування</h2>
+                    
+                    <div class="section-box">
+                        <h3>Контактна інформація</h3>
+                        <form id="contactsForm" class="contacts-form">
+                            <div class="form-group">
+                                <label for="contactPhone">Телефон</label>
+                                <input type="tel" id="contactPhone" placeholder="0971891845">
+                            </div>
+                            <div class="form-group">
+                                <label for="contactTelegram">Telegram нік</label>
+                                <input type="text" id="contactTelegram" placeholder="@ann_not_found">
+                            </div>
+                            <button type="submit" class="btn-submit">💾 Зберегти контакти</button>
+                        </form>
+                    </div>
+
+                    <div class="section-box">
+                        <h3>Адміністратори</h3>
+                        <div id="adminsList" class="admins-list">
+                            <p class="empty-message">Немає адміністраторів</p>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
