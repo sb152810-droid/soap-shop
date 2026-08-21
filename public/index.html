@@ -13,14 +13,46 @@
             <div class="header-content">
                 <h1>🛁 Soap Shop</h1>
                 <p class="tagline">Натуральне мило ручної роботи</p>
+            </div>
+            <div class="header-links">
                 <a href="admin.html" class="admin-link">🔧 Адмін-панель</a>
+                <a href="https://t.me/+LA2IV4k5ySVmZWly" target="_blank" class="telegram-link" title="Наш Telegram канал">📲 Телеграм</a>
             </div>
         </header>
+
+        <!-- Telegram Channel Promo Banner -->
+        <div class="telegram-banner">
+            <div class="banner-content">
+                <h3>📢 Підпишіться на наш Telegram канал!</h3>
+                <p>Отримуйте актуальні акції, промокоди та новини про нові товари</p>
+                <a href="https://t.me/+LA2IV4k5ySVmZWly" target="_blank" class="btn-telegram">📲 Перейти на канал</a>
+            </div>
+        </div>
 
         <!-- Main Content -->
         <main class="main">
             <section class="order-section">
                 <h2>Оформити замовлення</h2>
+                
+                <!-- Promo Code Section -->
+                <div class="promo-section">
+                    <h3 style="color: #FF69B4; margin-bottom: 15px;">🎟️ Промокод (опціонально)</h3>
+                    <div class="promo-input-group">
+                        <input 
+                            type="text" 
+                            id="promoInput" 
+                            placeholder="Введіть промокод" 
+                            class="promo-input"
+                        >
+                        <button 
+                            type="button" 
+                            onclick="applyPromo()" 
+                            class="btn-promo"
+                        >Застосувати</button>
+                    </div>
+                    <div id="promoStatus" class="promo-status"></div>
+                </div>
+
                 <form id="orderForm" class="order-form">
                     <!-- Step 1: Shape Selection -->
                     <div class="form-step active" id="step1">
@@ -105,6 +137,10 @@
                 <p class="contact-info">
                     <strong>☎️ Телефон:</strong> <span id="contactPhone">0971891845</span><br>
                     <strong>💬 Telegram:</strong> <span id="contactTelegram">@ann_not_found</span>
+                </p>
+                <p class="contact-info" style="background: #FFE4F0; padding: 15px; border-radius: 12px; margin-top: 20px;">
+                    <strong>📢 Не забудьте підписатися на Telegram!</strong><br>
+                    <a href="https://t.me/+LA2IV4k5ySVmZWly" target="_blank" style="color: #FF69B4; text-decoration: none; font-weight: 600;">Канал з акціями та промокодами</a>
                 </p>
                 <button class="btn-close" onclick="closeModal()">Нове замовлення</button>
             </div>
